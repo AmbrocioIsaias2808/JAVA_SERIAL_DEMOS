@@ -3,8 +3,9 @@ package serial_recepcion;
 
 import java.util.Scanner;
 import com.fazecast.jSerialComm.*;
+import org.json.JSONObject;
 
-public class Serial_recepcion {
+public class Serial_recepcion2 {
 
     static SerialPort con_serial;
     static String textoRecibido="";
@@ -48,7 +49,23 @@ public class Serial_recepcion {
             //System.out.println(textoRecibido);
             if(textoRecibido.endsWith("*")==true){
                 textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
-                System.out.println(textoRecibido);
+                //System.out.println(textoRecibido);
+                
+                /*CODIGO NUEVO: */
+                JSONObject json = new JSONObject(textoRecibido);
+
+                int temp            = json.getInt("temp");
+                String temp_type    = json.getString("temp_type");
+                int presion         = json.getInt("presion");
+                int velocidad       = json.getInt("velocidad");
+                int humedad         = json.getInt("humedad");
+                
+                System.out.println("Temperatura: "+ temp+" "+temp_type);
+                System.out.println("Presion:"+ presion);
+                System.out.println("Velocidad:"+velocidad);
+                System.out.println("Humedad:"+humedad);
+                 System.out.println("");
+                //FIN DEL CÓDIGO NUEVO
                 textoRecibido="";
                 //enviar(activePort, "HOLA DESDE JAVA");
             }
