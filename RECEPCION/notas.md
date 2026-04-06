@@ -556,7 +556,7 @@ public class Serial_recepcion2 {
     static void lectura(SerialPort activePort){
               // Read response (assuming data is available)
         byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, readBuffer.length);
+        int numBytesRead = activePort.readBytes(readBuffer, 1024);
         if (numBytesRead > 0) {
             String response = new String(readBuffer, 0, numBytesRead);
             textoRecibido=textoRecibido+response;
@@ -631,7 +631,7 @@ Si ejecutamos este código estaremos mandando información a internet:
 
 Y lo curioso es... estoy usando un arduino UNO para esto, el cual no tiene antena wifi ni nada, es mi pc quien procesa todo esto.
 
-**NOTA:** De preferencia cambia el delay en arduino a cada 5 o 10 segundos, para que no nos bloquee por spam o DDOS. (Como a mí... :c a ver cuando me desbloquean la IP).
+> **NOTA:** De preferencia cambia el delay en arduino a cada 5 o 10 segundos, para que no nos bloquee por spam o DDOS. (Como a mí... :c a ver cuando me desbloquean la IP).
 
 Otro sitio que puedes usar es:
 

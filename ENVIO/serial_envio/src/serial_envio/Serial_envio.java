@@ -4,7 +4,10 @@
  */
 package serial_envio;
 
+import com.fazecast.jSerialComm.SerialPort;
+import java.io.OutputStream;
 import java.util.Scanner;
+import org.json.JSONObject;
 
 /**
  *
@@ -47,7 +50,7 @@ public class Serial_envio {
     static void lectura(SerialPort activePort){
               // Read response (assuming data is available)
         byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, readBuffer.length);
+        int numBytesRead = activePort.readBytes(readBuffer, 1024);
         if (numBytesRead > 0) {
             String response = new String(readBuffer, 0, numBytesRead);
             textoRecibido=textoRecibido+response;
@@ -56,7 +59,7 @@ public class Serial_envio {
                 textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
                 //System.out.println(textoRecibido);
                 
-                /*CODIGO NUEVO: */
+               
                 JSONObject json = new JSONObject(textoRecibido);
 
                 int temp            = json.getInt("temp");
@@ -69,13 +72,48 @@ public class Serial_envio {
                 System.out.println("Presion:"+ presion);
                 System.out.println("Velocidad:"+velocidad);
                 System.out.println("Humedad:"+humedad);
-                 System.out.println("");
-                //FIN DEL CÓDIGO NUEVO
+                System.out.println("");
+                
+                //INCIO: CÓDIGO NUEVO
+                    JSONObject jsonEnviar = new JSONObject();
+                
+                    if(temp>50){
+                        jsonEnviar.put("alarma_temp", "ON");
+                    }else{
+                        jsonEnviar.put("alarma_temp", "OFF");
+                    }
+                    
+                    if(humedad>70){
+                        jsonEnviar.put("alarma_hum", 1);
+                    }else{
+                        jsonEnviar.put("alarma_hum", 0);
+                    }
+                    
+                    System.out.println(jsonEnviar.toString());
+                    
+                    enviar(activePort, jsonEnviar.toString());
+                    
+                    
+                //FIN: CÓDIGO NUEVO
+                
                 textoRecibido="";
                 //enviar(activePort, "HOLA DESDE JAVA");
             }
         }
     }
+    
+     static void enviar(SerialPort activePort, String mensaje){
+        OutputStream outputStream = con_serial.getOutputStream();
+        
+        try{
+            outputStream.write(mensaje.getBytes());
+            
+        }catch(Exception e){
+            System.out.println("Error inesperado");
+        }
+    
+    }
+     
     static void sleep(int i){
         try{
              Thread.sleep(i);
