@@ -1,15 +1,16 @@
-
-package serial_recepcion;
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
+ */
+package serial_envio;
 
 import java.util.Scanner;
-import com.fazecast.jSerialComm.*;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import org.json.JSONObject;
 
-public class Serial_recepcion2 {
+/**
+ *
+ * @author isaias
+ */
+public class Serial_envio {
 
     static SerialPort con_serial;
     static String textoRecibido="";
@@ -68,10 +69,7 @@ public class Serial_recepcion2 {
                 System.out.println("Presion:"+ presion);
                 System.out.println("Velocidad:"+velocidad);
                 System.out.println("Humedad:"+humedad);
-                System.out.println("");
-                
-                enviarALaNube(textoRecibido);
-                 
+                 System.out.println("");
                 //FIN DEL CÓDIGO NUEVO
                 textoRecibido="";
                 //enviar(activePort, "HOLA DESDE JAVA");
@@ -86,28 +84,4 @@ public class Serial_recepcion2 {
         }
     }
     
-    static void enviarALaNube(String jsonParaEnviar) {
-        // 1. Reemplaza con la URL que te dé Webhook.site
-        String urlDestino = "https://eojsbwr4xeb9jj1.m.pipedream.net";
-
-        try {
-            HttpClient client = HttpClient.newHttpClient();
-
-            // 2. Construir la petición POST
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(urlDestino))
-                    .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
-                    .build();
-
-            // 3. Enviar de forma asíncrona (¡Importante para no bloquear el Serial!)
-            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                  .thenAccept(response -> {
-                      System.out.println("Nube actualizada. Código: " + response.statusCode());
-                  });
-
-        } catch (Exception e) {
-            System.err.println("Error al conectar con la API: " + e.getMessage());
-        }
-    }
 }

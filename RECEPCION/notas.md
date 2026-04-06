@@ -454,3 +454,187 @@ Extraemos el valor que se ocupe y lo usamos para despues. Vease el resultado en 
 
 ![alt text](../assets.img/image-5.png)
 
+
+EXTRA:
+
+Accedamos a :
+
+https://webhook.site/
+
+Este es un sitio para probar apps que usan APIs. En este caso vamos a copiar el enlace que nos generó:
+
+
+
+![alt text](../assets.img/image-6.png)
+
+Y vamos a usarlo de la siguiente manera:
+
+En java agreguemos esta función y reemplaza la url por la que te generó:
+
+```java
+
+/*LIBRERIAS OCUPADAS:*/
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+static void enviarALaNube(String jsonParaEnviar) {
+    // 1. Reemplaza con la URL que te dé Webhook.site
+    String urlDestino = "https://webhook.site/tu-id-unico-aqui";
+
+    try {
+        HttpClient client = HttpClient.newHttpClient();
+
+        // 2. Construir la petición POST
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(urlDestino))
+                .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
+                .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
+                .build();
+
+        // 3. Enviar de forma asíncrona (¡Importante para no bloquear el Serial!)
+        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+              .thenAccept(response -> {
+                  System.out.println("Nube actualizada. Código: " + response.statusCode());
+              });
+
+    } catch (Exception e) {
+        System.err.println("Error al conectar con la API: " + e.getMessage());
+    }
+}
+```
+
+Tendremos al final un código como:
+
+```java
+
+package serial_recepcion;
+
+import java.util.Scanner;
+import com.fazecast.jSerialComm.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import org.json.JSONObject;
+
+public class Serial_recepcion2 {
+
+    static SerialPort con_serial;
+    static String textoRecibido="";
+
+    public static void main(String[] args) {
+       int puerto=0;
+       Scanner leer =  new Scanner(System.in);
+       SerialPort[] portLists = SerialPort.getCommPorts();
+       
+       System.out.println("Hola, selecciona el puerto: ");
+       for(int i=0; i<portLists.length;i++){
+           System.out.println(i+". "+portLists[i].getSystemPortName());
+       }
+       puerto = leer.nextInt();
+        con_serial =portLists[puerto];
+        con_serial.setBaudRate(9600);
+        con_serial.setNumDataBits(8);
+        con_serial.setNumStopBits(1);
+        con_serial.setParity(0);
+        con_serial.openPort();
+        
+        if(con_serial.isOpen()){
+            System.out.println("CONEXION EXITOSA");
+            while(true){
+                lectura(con_serial);
+                sleep(1000);
+            }
+        }else{
+            System.out.println("NO SE PUDO ESTABLECER UNA CONEXIÓN");
+        }
+        con_serial.closePort();
+    }
+    
+    static void lectura(SerialPort activePort){
+              // Read response (assuming data is available)
+        byte[] readBuffer = new byte[1024];
+        int numBytesRead = activePort.readBytes(readBuffer, readBuffer.length);
+        if (numBytesRead > 0) {
+            String response = new String(readBuffer, 0, numBytesRead);
+            textoRecibido=textoRecibido+response;
+            //System.out.println(textoRecibido);
+            if(textoRecibido.endsWith("*")==true){
+                textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                //System.out.println(textoRecibido);
+                
+                /*CODIGO NUEVO: */
+                JSONObject json = new JSONObject(textoRecibido);
+
+                int temp            = json.getInt("temp");
+                String temp_type    = json.getString("temp_type");
+                int presion         = json.getInt("presion");
+                int velocidad       = json.getInt("velocidad");
+                int humedad         = json.getInt("humedad");
+                
+                System.out.println("Temperatura: "+ temp+" "+temp_type);
+                System.out.println("Presion:"+ presion);
+                System.out.println("Velocidad:"+velocidad);
+                System.out.println("Humedad:"+humedad);
+                System.out.println("");
+                
+                enviarALaNube(textoRecibido); //aqui llamamos a la función
+                 
+                //FIN DEL CÓDIGO NUEVO
+                textoRecibido="";
+                //enviar(activePort, "HOLA DESDE JAVA");
+            }
+        }
+    }
+    static void sleep(int i){
+        try{
+             Thread.sleep(i);
+        }catch(Exception e){
+            System.out.println("Error al dormir");
+        }
+    }
+    
+    static void enviarALaNube(String jsonParaEnviar) {
+        // 1. Reemplaza con la URL que te dé Webhook.site
+        String urlDestino = "https://webhook.site/[id]";
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            // 2. Construir la petición POST
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(urlDestino))
+                    .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
+                    .build();
+
+            // 3. Enviar de forma asíncrona (¡Importante para no bloquear el Serial!)
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                  .thenAccept(response -> {
+                      System.out.println("Nube actualizada. Código: " + response.statusCode());
+                  });
+
+        } catch (Exception e) {
+            System.err.println("Error al conectar con la API: " + e.getMessage());
+        }
+    }
+}
+
+```
+
+Si ejecutamos este código estaremos mandando información a internet:
+
+![alt text](../assets.img/image-7.png)
+
+
+Y lo curioso es... estoy usando un arduino UNO para esto, el cual no tiene antena wifi ni nada, es mi pc quien procesa todo esto.
+
+**NOTA:** De preferencia cambia el delay en arduino a cada 5 o 10 segundos, para que no nos bloquee por spam o DDOS. (Como a mí... :c a ver cuando me desbloquean la IP).
+
+Otro sitio que puedes usar es:
+
+https://pipedream.com/
+
+Solo que hay que hacer cuenta en el sitio.
