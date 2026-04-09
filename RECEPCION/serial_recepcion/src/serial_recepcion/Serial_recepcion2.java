@@ -3,11 +3,18 @@ package serial_recepcion;
 
 import java.util.Scanner;
 import com.fazecast.jSerialComm.*;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.json.JSONObject;
+
+//librerias postgres y sql:
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class Serial_recepcion2 {
 
@@ -70,8 +77,8 @@ public class Serial_recepcion2 {
                 System.out.println("Humedad:"+humedad);
                 System.out.println("");
                 
-                enviarALaNube(textoRecibido);
-                 
+                //enviarALaNube(textoRecibido);
+                 guardarEnBD(temp, humedad);
                 //FIN DEL CÓDIGO NUEVO
                 textoRecibido="";
                 //enviar(activePort, "HOLA DESDE JAVA");
@@ -109,5 +116,34 @@ public class Serial_recepcion2 {
         } catch (Exception e) {
             System.err.println("Error al conectar con la API: " + e.getMessage());
         }
+    }
+    
+    
+    public static void guardarEnBD(int t, int h) {
+            // RECUERDA: jdbc:postgresql://[HOST]:[PUERTO]/[DB_NAME]
+            String url = "jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:6543/postgres";
+            String user = "postgres.jurzvulsaeytnbxspkdi";
+            String pass = "Tecnm_itm123";
+            
+            try{
+                Class.forName("org.postgresql.Driver");
+
+                try (Connection conn = DriverManager.getConnection(url, user, pass)) {
+                    String query = "INSERT INTO muestras (temp, hum) VALUES (?, ?)";
+                    PreparedStatement pstmt = conn.prepareStatement(query);
+                    pstmt.setDouble(1, t);
+                    pstmt.setDouble(2, h);
+
+                    pstmt.executeUpdate();
+                    System.out.println(">>> [DB] Éxito: T=" + t + " H=" + h);
+                    
+                    conn.close();
+
+                } catch (Exception e) {
+                    System.err.println(">>> [DB] Error: " + e.getMessage());
+                }
+            }catch(Exception e){
+                System.out.println("Error al conectar BD: "+e.getMessage());
+            }
     }
 }
