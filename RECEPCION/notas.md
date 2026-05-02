@@ -210,11 +210,11 @@ Cuando enviamos cosas por el puerto seríal, este administra el envío y los man
 
 Para el puerto serial puede ser muy largo el mensaje para enviarlo de un solo golpe. Entonces lo puede a partir en pequeños pedasos como:
 
-PAQUETE 1: HOL
-PAQUETE 2: A MUN
-PAQUETE 3: DO CO
-PAQUETE 4: MO EST
-PAQUETE 5: AN \n
+* PAQUETE 1: HOL
+* PAQUETE 2: A MUN
+* PAQUETE 3: DO CO
+* PAQUETE 4: MO EST
+* PAQUETE 5: AN \n
 
 Si notas esto es impractico, pues nos obliga a ver que existe una especie de cuello de botella, pues... tenemos que indicarle a java que no debe hacer nada hasta que reciba toda la información antes de hacer algo. Entonces....
 
