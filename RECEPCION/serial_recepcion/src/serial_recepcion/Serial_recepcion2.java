@@ -22,6 +22,16 @@ public class Serial_recepcion2 {
     static String textoRecibido="";
 
     public static void main(String[] args) {
+        JSONObject json = new JSONObject();
+        json.put("nombre", "java");
+        json.put("apellido", "desde");
+        json.put("edad", 20);
+        
+        enviarASupabaseAPI(json.toString());
+        
+        
+        
+       
        int puerto=0;
        Scanner leer =  new Scanner(System.in);
        SerialPort[] portLists = SerialPort.getCommPorts();
@@ -95,7 +105,7 @@ public class Serial_recepcion2 {
     
     static void enviarALaNube(String jsonParaEnviar) {
         // 1. Reemplaza con la URL que te dé Webhook.site
-        String urlDestino = "https://eojsbwr4xeb9jj1.m.pipedream.net";
+        String urlDestino = "[url]";
 
         try {
             HttpClient client = HttpClient.newHttpClient();
@@ -118,12 +128,38 @@ public class Serial_recepcion2 {
         }
     }
     
+    static void enviarASupabaseAPI(String jsonParaEnviar) {
+        
+        String urlDestino = "[url]";
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            // 2. Construir la petición POST
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(urlDestino))
+                    .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
+                    .header("apiKey", "[api_key]") // Le avisamos que mandamos JSON
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
+                    .build();
+
+            // 3. Enviar de forma asíncrona (¡Importante para no bloquear el Serial!)
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                  .thenAccept(response -> {
+                      System.out.println("Nube actualizada. Código: " + response.statusCode());
+                  });
+
+        } catch (Exception e) {
+            System.err.println("Error al conectar con la API: " + e.getMessage());
+        }
+    }
+    
     
     public static void guardarEnBD(int t, int h) {
             // RECUERDA: jdbc:postgresql://[HOST]:[PUERTO]/[DB_NAME]
-            String url = "jdbc:postgresql://aws-1-us-east-2.pooler.supabase.com:6543/postgres";
-            String user = "postgres.jurzvulsaeytnbxspkdi";
-            String pass = "Tecnm_itm123";
+            String url = "jdbc:postgresql://[ip]:6543/postgres";
+            String user = "[user]";
+            String pass = "[password]";
             
             try{
                 Class.forName("org.postgresql.Driver");

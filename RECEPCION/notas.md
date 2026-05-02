@@ -455,7 +455,7 @@ Extraemos el valor que se ocupe y lo usamos para despues. Vease el resultado en 
 ![alt text](../assets.img/image-5.png)
 
 
-EXTRA:
+# EXTRA (ENVIO DE DATOS A SERVICIOS API)
 
 Accedamos a :
 
@@ -863,4 +863,15 @@ public class Serial_recepcion2 {
 Al final si todo esta bien deberíamos poder ver en nuestra consola sql (aplicando un select) los datos recabados de nuestro sensor:
 
 ![alt text](../assets.img/image-17.png)
+
+# ENVIO DE DATOS A SUPABASE USANDO SU SERVICIO API
+
+Haciendo una pequeña combinación de ambas partes, vamos a tratar de enviar los datos que estamos recabando pero ahora modifiquemos nuestro código para enviar esto a base de datos pero mediante POSTGRES REST, que es un servicio incluido en supabase. Básicamente este convierte tu base de datos en una servicio REST API de forma automática. 
+
+**¿Por qué es útil?**
+
+Bueno, si no tenemos forma de usar alguna librería de conexión a base de datos, como sucede en frameworks como react-native donde no es recomendable hacerlo como hemos mostrado aquí (react-native es un framework de desarrollo de aplicaciones móviles, crear una conexión a postgres desde tu APP implica que la contraseña de tu base de datos la tienes que empaquetar en tu código... junto con el usuario de base de datos... y probablemente la ip de tu servidor y ya que la app la van a descargar miles de desconocidos en la red... bueno... para que te cuento).
+
+En este caso, 
+
 
