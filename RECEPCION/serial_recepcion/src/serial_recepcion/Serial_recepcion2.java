@@ -22,16 +22,6 @@ public class Serial_recepcion2 {
     static String textoRecibido="";
 
     public static void main(String[] args) {
-        JSONObject json = new JSONObject();
-        json.put("nombre", "java");
-        json.put("apellido", "desde");
-        json.put("edad", 20);
-        
-        enviarASupabaseAPI(json.toString());
-        
-        
-        
-       
        int puerto=0;
        Scanner leer =  new Scanner(System.in);
        SerialPort[] portLists = SerialPort.getCommPorts();
@@ -62,37 +52,50 @@ public class Serial_recepcion2 {
     
     static void lectura(SerialPort activePort){
               // Read response (assuming data is available)
-        byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, readBuffer.length);
-        if (numBytesRead > 0) {
-            String response = new String(readBuffer, 0, numBytesRead);
-            textoRecibido=textoRecibido+response;
-            //System.out.println(textoRecibido);
-            if(textoRecibido.endsWith("*")==true){
-                textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
-                //System.out.println(textoRecibido);
-                
-                /*CODIGO NUEVO: */
-                JSONObject json = new JSONObject(textoRecibido);
+        try{
+                byte[] readBuffer = new byte[1024];
+                int numBytesRead = activePort.readBytes(readBuffer, readBuffer.length);
+                if (numBytesRead > 0) {
+                    String response = new String(readBuffer, 0, numBytesRead);
+                    textoRecibido=textoRecibido+response;
+                    //System.out.println(textoRecibido);
+                    if(textoRecibido.endsWith("*")==true){
+                        textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                        //System.out.println(textoRecibido);
 
-                int temp            = json.getInt("temp");
-                String temp_type    = json.getString("temp_type");
-                int presion         = json.getInt("presion");
-                int velocidad       = json.getInt("velocidad");
-                int humedad         = json.getInt("humedad");
-                
-                System.out.println("Temperatura: "+ temp+" "+temp_type);
-                System.out.println("Presion:"+ presion);
-                System.out.println("Velocidad:"+velocidad);
-                System.out.println("Humedad:"+humedad);
-                System.out.println("");
-                
-                //enviarALaNube(textoRecibido);
-                 guardarEnBD(temp, humedad);
-                //FIN DEL CÓDIGO NUEVO
-                textoRecibido="";
-                //enviar(activePort, "HOLA DESDE JAVA");
-            }
+                        /*CODIGO NUEVO: */
+                        JSONObject json = new JSONObject(textoRecibido);
+
+                        int temp            = json.getInt("temp");
+                        String temp_type    = json.getString("temp_type");
+                        int presion         = json.getInt("presion");
+                        int velocidad       = json.getInt("velocidad");
+                        int humedad         = json.getInt("humedad");
+
+                        System.out.println("Temperatura: "+ temp+" "+temp_type);
+                        System.out.println("Presion:"+ presion);
+                        System.out.println("Velocidad:"+velocidad);
+                        System.out.println("Humedad:"+humedad);
+                        System.out.println("");
+
+                        //enviarALaNube(textoRecibido);
+                         //guardarEnBD(temp, humedad);
+
+                        JSONObject jsonToSend = new JSONObject();
+                        jsonToSend.put("temp", temp);
+                        jsonToSend.put("hum", humedad);
+
+                        enviarASupabaseAPI(jsonToSend.toString());
+
+
+                        //FIN DEL CÓDIGO NUEVO
+                        textoRecibido="";
+                        //enviar(activePort, "HOLA DESDE JAVA");
+                    }
+                }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos"+e.getMessage());
         }
     }
     static void sleep(int i){
@@ -105,7 +108,7 @@ public class Serial_recepcion2 {
     
     static void enviarALaNube(String jsonParaEnviar) {
         // 1. Reemplaza con la URL que te dé Webhook.site
-        String urlDestino = "[url]";
+        String urlDestino = "https://[HOST_URL]";
 
         try {
             HttpClient client = HttpClient.newHttpClient();
@@ -130,7 +133,7 @@ public class Serial_recepcion2 {
     
     static void enviarASupabaseAPI(String jsonParaEnviar) {
         
-        String urlDestino = "[url]";
+        String urlDestino = "https://[HOST_URL]/rest/v1/[TABLA]";
 
         try {
             HttpClient client = HttpClient.newHttpClient();
@@ -139,7 +142,7 @@ public class Serial_recepcion2 {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(urlDestino))
                     .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
-                    .header("apiKey", "[api_key]") // Le avisamos que mandamos JSON
+                    .header("apiKey", "[API_KEY]") // Le avisamos que mandamos JSON
                     .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
                     .build();
 
@@ -157,9 +160,9 @@ public class Serial_recepcion2 {
     
     public static void guardarEnBD(int t, int h) {
             // RECUERDA: jdbc:postgresql://[HOST]:[PUERTO]/[DB_NAME]
-            String url = "jdbc:postgresql://[ip]:6543/postgres";
-            String user = "[user]";
-            String pass = "[password]";
+            String url = "jdbc:postgresql://[HOST]:[PUERTO]/[DB_NAME]";
+            String user = "[USER]";
+            String pass = "[PASSWORD]";
             
             try{
                 Class.forName("org.postgresql.Driver");

@@ -125,9 +125,9 @@ Ahora para comunicarnos con el puerto serial debemos configurar un par de cosas 
 
 En realidad, las opciones en la librería jSerialComm suelen ser constantes como:
 
-* SerialPort.NO_PARITY (Valor 0): El bit extra se pone en 0 o 1 para que el total de "unos" en el mensaje sea par.
+* SerialPort.NO_PARITY (Valor 0): No se envía ningún bit de revisión.
 * SerialPort.ODD_PARITY (Valor 1): El bit extra se asegura de que el total de "unos" sea impar.
-* SerialPort.EVEN_PARITY (Valor 2): No se envía ningún bit de revisión (es lo que usa Arduino por defecto).
+* SerialPort.EVEN_PARITY (Valor 2): El bit extra se pone en 0 o 1 para que el total de "unos" en el mensaje sea par.
 
 Y pues la instrucción .openPort() indica lo que sugiere, intenta abrir el puerto.
 
@@ -176,19 +176,25 @@ Ahora si, al función lectura:
 
 ```java
 static void lectura(SerialPort activePort){
-              // Read response (assuming data is available)
-        byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, 1024);
-        if (numBytesRead > 0) {
-            String response = new String(readBuffer, 0, numBytesRead);
-            textoRecibido=textoRecibido+response;
-            //System.out.println(textoRecibido);
-            if(textoRecibido.endsWith("*")==true){
-                textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
-                System.out.println(textoRecibido);
-                textoRecibido="";
-                
+
+        try{
+                // Read response (assuming data is available)
+            byte[] readBuffer = new byte[1024];
+            int numBytesRead = activePort.readBytes(readBuffer, 1024);
+            if (numBytesRead > 0) {
+                String response = new String(readBuffer, 0, numBytesRead);
+                textoRecibido=textoRecibido+response;
+                //System.out.println(textoRecibido);
+                if(textoRecibido.endsWith("*")==true){
+                    textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                    System.out.println(textoRecibido);
+                    textoRecibido="";
+                    
+                }
             }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos: "+e.getMessage());
         }
 }
 ```
@@ -277,19 +283,25 @@ public class Serial_recepcion {
     }
     
     static void lectura(SerialPort activePort){
-              // Read response (assuming data is available)
-        byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, 1024);
-        if (numBytesRead > 0) {
-            String response = new String(readBuffer, 0, numBytesRead);
-            textoRecibido=textoRecibido+response;
-            //System.out.println(textoRecibido);
-            if(textoRecibido.endsWith("*")==true){
-                textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
-                System.out.println(textoRecibido);
-                textoRecibido="";
-                
+
+        try{
+                // Read response (assuming data is available)
+            byte[] readBuffer = new byte[1024];
+            int numBytesRead = activePort.readBytes(readBuffer, 1024);
+            if (numBytesRead > 0) {
+                String response = new String(readBuffer, 0, numBytesRead);
+                textoRecibido=textoRecibido+response;
+                //System.out.println(textoRecibido);
+                if(textoRecibido.endsWith("*")==true){
+                    textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                    System.out.println(textoRecibido);
+                    textoRecibido="";
+                    
+                }
             }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos: "+e.getMessage());
         }
     }
     static void sleep(int i){
@@ -410,35 +422,40 @@ En fin, revisa este código:
 
 ```java
 static void lectura(SerialPort activePort){
-              // Read response (assuming data is available)
-        byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, readBuffer.length);
-        if (numBytesRead > 0) {
-            String response = new String(readBuffer, 0, numBytesRead);
-            textoRecibido=textoRecibido+response;
-            //System.out.println(textoRecibido);
-            if(textoRecibido.endsWith("*")==true){
-                textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
-                //System.out.println(textoRecibido); <-- esta linea se comentó
-                
-                /*CODIGO NUEVO: */
-                JSONObject json = new JSONObject(textoRecibido);
+        try{
+                // Read response (assuming data is available)
+            byte[] readBuffer = new byte[1024];
+            int numBytesRead = activePort.readBytes(readBuffer, 1024);
+            if (numBytesRead > 0) {
+                String response = new String(readBuffer, 0, numBytesRead);
+                textoRecibido=textoRecibido+response;
+                //System.out.println(textoRecibido);
+                if(textoRecibido.endsWith("*")==true){
+                    textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                    //System.out.println(textoRecibido); <-- esta linea se comentó
+                    
+                    /*CODIGO NUEVO: */
+                    JSONObject json = new JSONObject(textoRecibido);
 
-                int temp            = json.getInt("temp");
-                String temp_type    = json.getString("temp_type");
-                int presion         = json.getInt("presion");
-                int velocidad       = json.getInt("velocidad");
-                int humedad         = json.getInt("humedad");
-                
-                 System.out.println("Temperatura: "+ temp+" "+temp_type);
-                System.out.println("Presion:"+ presion);
-                System.out.println("Velocidad:"+velocidad);
-                System.out.println("Humedad:"+humedad);
-                System.out.println("");
-                //FIN DEL CÓDIGO NUEVO
-                textoRecibido="";
-                
+                    int temp            = json.getInt("temp");
+                    String temp_type    = json.getString("temp_type");
+                    int presion         = json.getInt("presion");
+                    int velocidad       = json.getInt("velocidad");
+                    int humedad         = json.getInt("humedad");
+                    
+                    System.out.println("Temperatura: "+ temp+" "+temp_type);
+                    System.out.println("Presion:"+ presion);
+                    System.out.println("Velocidad:"+velocidad);
+                    System.out.println("Humedad:"+humedad);
+                    System.out.println("");
+                    //FIN DEL CÓDIGO NUEVO
+                    textoRecibido="";
+                    
+                }
             }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos"+e.getMessage());
         }
     }
 ```
@@ -554,40 +571,46 @@ public class Serial_recepcion2 {
     }
     
     static void lectura(SerialPort activePort){
-              // Read response (assuming data is available)
-        byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, 1024);
-        if (numBytesRead > 0) {
-            String response = new String(readBuffer, 0, numBytesRead);
-            textoRecibido=textoRecibido+response;
-            //System.out.println(textoRecibido);
-            if(textoRecibido.endsWith("*")==true){
-                textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+        try{
+                // Read response (assuming data is available)
+            byte[] readBuffer = new byte[1024];
+            int numBytesRead = activePort.readBytes(readBuffer, 1024);
+            if (numBytesRead > 0) {
+                String response = new String(readBuffer, 0, numBytesRead);
+                textoRecibido=textoRecibido+response;
                 //System.out.println(textoRecibido);
-                
-                /*CODIGO NUEVO: */
-                JSONObject json = new JSONObject(textoRecibido);
+                if(textoRecibido.endsWith("*")==true){
+                    textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                    //System.out.println(textoRecibido);
+                    
+                    /*CODIGO NUEVO: */
+                    JSONObject json = new JSONObject(textoRecibido);
 
-                int temp            = json.getInt("temp");
-                String temp_type    = json.getString("temp_type");
-                int presion         = json.getInt("presion");
-                int velocidad       = json.getInt("velocidad");
-                int humedad         = json.getInt("humedad");
-                
-                System.out.println("Temperatura: "+ temp+" "+temp_type);
-                System.out.println("Presion:"+ presion);
-                System.out.println("Velocidad:"+velocidad);
-                System.out.println("Humedad:"+humedad);
-                System.out.println("");
-                
-                enviarALaNube(textoRecibido); //aqui llamamos a la función
-                 
-                //FIN DEL CÓDIGO NUEVO
-                textoRecibido="";
-                //enviar(activePort, "HOLA DESDE JAVA");
+                    int temp            = json.getInt("temp");
+                    String temp_type    = json.getString("temp_type");
+                    int presion         = json.getInt("presion");
+                    int velocidad       = json.getInt("velocidad");
+                    int humedad         = json.getInt("humedad");
+                    
+                    System.out.println("Temperatura: "+ temp+" "+temp_type);
+                    System.out.println("Presion:"+ presion);
+                    System.out.println("Velocidad:"+velocidad);
+                    System.out.println("Humedad:"+humedad);
+                    System.out.println("");
+                    
+                    enviarALaNube(textoRecibido); //aqui llamamos a la función
+                    
+                    //FIN DEL CÓDIGO NUEVO
+                    textoRecibido="";
+                    //enviar(activePort, "HOLA DESDE JAVA");
+                }
             }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos"+e.getMessage());
         }
     }
+
     static void sleep(int i){
         try{
              Thread.sleep(i);
@@ -760,39 +783,45 @@ public class Serial_recepcion2 {
     }
     
     static void lectura(SerialPort activePort){
-              // Read response (assuming data is available)
-        byte[] readBuffer = new byte[1024];
-        int numBytesRead = activePort.readBytes(readBuffer, readBuffer.length);
-        if (numBytesRead > 0) {
-            String response = new String(readBuffer, 0, numBytesRead);
-            textoRecibido=textoRecibido+response;
-            //System.out.println(textoRecibido);
-            if(textoRecibido.endsWith("*")==true){
-                textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
-                //System.out.println(textoRecibido);
-                
-                /*CODIGO NUEVO: */
-                JSONObject json = new JSONObject(textoRecibido);
 
-                int temp            = json.getInt("temp");
-                String temp_type    = json.getString("temp_type");
-                int presion         = json.getInt("presion");
-                int velocidad       = json.getInt("velocidad");
-                int humedad         = json.getInt("humedad");
-                
-                System.out.println("Temperatura: "+ temp+" "+temp_type);
-                System.out.println("Presion:"+ presion);
-                System.out.println("Velocidad:"+velocidad);
-                System.out.println("Humedad:"+humedad);
-                System.out.println("");
-                
-                //enviarALaNube(textoRecibido);
-                 guardarEnBD(temp, humedad);
-                //FIN DEL CÓDIGO NUEVO
-                textoRecibido="";
-                //enviar(activePort, "HOLA DESDE JAVA");
-            }
-        }
+        try{
+                    // Read response (assuming data is available)
+                byte[] readBuffer = new byte[1024];
+                int numBytesRead = activePort.readBytes(readBuffer, 1024);
+                if (numBytesRead > 0) {
+                    String response = new String(readBuffer, 0, numBytesRead);
+                    textoRecibido=textoRecibido+response;
+                    //System.out.println(textoRecibido);
+                    if(textoRecibido.endsWith("*")==true){
+                        textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                        //System.out.println(textoRecibido);
+                        
+                        /*CODIGO NUEVO: */
+                        JSONObject json = new JSONObject(textoRecibido);
+
+                        int temp            = json.getInt("temp");
+                        String temp_type    = json.getString("temp_type");
+                        int presion         = json.getInt("presion");
+                        int velocidad       = json.getInt("velocidad");
+                        int humedad         = json.getInt("humedad");
+                        
+                        System.out.println("Temperatura: "+ temp+" "+temp_type);
+                        System.out.println("Presion:"+ presion);
+                        System.out.println("Velocidad:"+velocidad);
+                        System.out.println("Humedad:"+humedad);
+                        System.out.println("");
+                        
+                        //enviarALaNube(textoRecibido);
+                        guardarEnBD(temp, humedad);
+                        //FIN DEL CÓDIGO NUEVO
+                        textoRecibido="";
+                        //enviar(activePort, "HOLA DESDE JAVA");
+                    }
+                }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos"+e.getMessage());
+        }        
     }
     static void sleep(int i){
         try{
@@ -804,7 +833,7 @@ public class Serial_recepcion2 {
     
     static void enviarALaNube(String jsonParaEnviar) {
         // 1. Reemplaza con la URL que te dé Webhook.site
-        String urlDestino = "https://eojsbwr4xeb9jj1.m.pipedream.net";
+        String urlDestino = "https://[URL]";
 
         try {
             HttpClient client = HttpClient.newHttpClient();
@@ -872,6 +901,296 @@ Haciendo una pequeña combinación de ambas partes, vamos a tratar de enviar los
 
 Bueno, si no tenemos forma de usar alguna librería de conexión a base de datos, como sucede en frameworks como react-native donde no es recomendable hacerlo como hemos mostrado aquí (react-native es un framework de desarrollo de aplicaciones móviles, crear una conexión a postgres desde tu APP implica que la contraseña de tu base de datos la tienes que empaquetar en tu código... junto con el usuario de base de datos... y probablemente la ip de tu servidor y ya que la app la van a descargar miles de desconocidos en la red... bueno... para que te cuento).
 
-En este caso, 
+### 1. Ajustando nuestro código en java:
+
+Vamos a agregar una función extra al final de nuestro código:
+
+```java
+    static void enviarASupabaseAPI(String jsonParaEnviar) {
+        
+        String urlDestino = "https://[URL]/rest/v1/[tabla]";
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            // 2. Construir la petición POST
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(urlDestino))
+                    .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
+                    .header("apiKey", "[APY_KEY]") // Le avisamos que mandamos JSON
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
+                    .build();
+
+            // 3. Enviar de forma asíncrona (¡Importante para no bloquear el Serial!)
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                  .thenAccept(response -> {
+                      System.out.println("Nube actualizada. Código: " + response.statusCode());
+                  });
+
+        } catch (Exception e) {
+            System.err.println("Error al conectar con la API: " + e.getMessage());
+        }
+    }
+```
+
+Esta función deberemos enviandole un json (en formato de texto) que deseamos enviar a la nube. En ese caso modifiquemos nuestra función de recepción de datos y dejemosla así:
+
+```java
+static void lectura(SerialPort activePort){
 
 
+        try{
+                    // Read response (assuming data is available)
+                byte[] readBuffer = new byte[1024];
+                int numBytesRead = activePort.readBytes(readBuffer, 1024);
+                if (numBytesRead > 0) {
+                    String response = new String(readBuffer, 0, numBytesRead);
+                    textoRecibido=textoRecibido+response;
+                    
+                    if(textoRecibido.endsWith("*")==true){
+                        textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                    
+                        
+                    
+                        JSONObject json = new JSONObject(textoRecibido);
+
+                        int temp            = json.getInt("temp");
+                        String temp_type    = json.getString("temp_type");
+                        int presion         = json.getInt("presion");
+                        int velocidad       = json.getInt("velocidad");
+                        int humedad         = json.getInt("humedad");
+                        
+                        System.out.println("Temperatura: "+ temp+" "+temp_type);
+                        System.out.println("Presion:"+ presion);
+                        System.out.println("Velocidad:"+velocidad);
+                        System.out.println("Humedad:"+humedad);
+                        System.out.println("");
+                        
+                        //ARMAMOS UN NUEVO JSON PARA SOLO ENVIAR LO NECESARIO A LA API:
+                        JSONObject jsonToSend = new JSONObject();
+
+                        //CADA "ITEM" debe tener el nombre exacto de la columna en base de datos que representa:
+                        jsonToSend.put("temp", temp);
+                        jsonToSend.put("hum", humedad);
+
+                        enviarASupabaseAPI(jsonToSend.toString());
+                            
+
+                        
+                        textoRecibido="";
+                    
+                    }
+                }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos"+e.getMessage());
+        }       
+    }
+    
+```
+
+Código final:
+
+```java
+
+package serial_recepcion;
+
+import java.util.Scanner;
+import com.fazecast.jSerialComm.*;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import org.json.JSONObject;
+
+//librerias postgres y sql:
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class Serial_recepcion2 {
+
+    static SerialPort con_serial;
+    static String textoRecibido="";
+
+    public static void main(String[] args) {
+       int puerto=0;
+       Scanner leer =  new Scanner(System.in);
+       SerialPort[] portLists = SerialPort.getCommPorts();
+       
+       System.out.println("Hola, selecciona el puerto: ");
+       for(int i=0; i<portLists.length;i++){
+           System.out.println(i+". "+portLists[i].getSystemPortName());
+       }
+       puerto = leer.nextInt();
+        con_serial =portLists[puerto];
+        con_serial.setBaudRate(9600);
+        con_serial.setNumDataBits(8);
+        con_serial.setNumStopBits(1);
+        con_serial.setParity(0);
+        con_serial.openPort();
+        
+        if(con_serial.isOpen()){
+            System.out.println("CONEXION EXITOSA");
+            while(true){
+                lectura(con_serial);
+                sleep(1000);
+            }
+        }else{
+            System.out.println("NO SE PUDO ESTABLECER UNA CONEXIÓN");
+        }
+        con_serial.closePort();
+    }
+    
+    static void lectura(SerialPort activePort){
+
+        try{
+                    // Read response (assuming data is available)
+                byte[] readBuffer = new byte[1024];
+                int numBytesRead = activePort.readBytes(readBuffer, 1024);
+                if (numBytesRead > 0) {
+                    String response = new String(readBuffer, 0, numBytesRead);
+                    textoRecibido=textoRecibido+response;
+                    
+                    if(textoRecibido.endsWith("*")==true){
+                        textoRecibido=textoRecibido.substring(0, textoRecibido.indexOf("*"));
+                    
+                        
+                    
+                        JSONObject json = new JSONObject(textoRecibido);
+
+                        int temp            = json.getInt("temp");
+                        String temp_type    = json.getString("temp_type");
+                        int presion         = json.getInt("presion");
+                        int velocidad       = json.getInt("velocidad");
+                        int humedad         = json.getInt("humedad");
+                        
+                        System.out.println("Temperatura: "+ temp+" "+temp_type);
+                        System.out.println("Presion:"+ presion);
+                        System.out.println("Velocidad:"+velocidad);
+                        System.out.println("Humedad:"+humedad);
+                        System.out.println("");
+                        
+                        JSONObject jsonToSend = new JSONObject();
+                        jsonToSend.put("temp", temp);
+                        jsonToSend.put("hum", humedad);
+
+                        enviarASupabaseAPI(jsonToSend.toString());
+                        
+                        textoRecibido="";
+                    
+                    }
+                }
+        }catch(Exception e){
+            textoRecibido="";
+            System.out.println("Error al recibir datos"+e.getMessage());
+        }        
+    }
+    static void sleep(int i){
+        try{
+             Thread.sleep(i);
+        }catch(Exception e){
+            System.out.println("Error al dormir");
+        }
+    }
+    
+    static void enviarALaNube(String jsonParaEnviar) {
+        // 1. Reemplaza con la URL que te dé Webhook.site
+        String urlDestino = "https://[url]";
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            // 2. Construir la petición POST
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(urlDestino))
+                    .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
+                    .build();
+
+            // 3. Enviar de forma asíncrona (¡Importante para no bloquear el Serial!)
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                  .thenAccept(response -> {
+                      System.out.println("Nube actualizada. Código: " + response.statusCode());
+                  });
+
+        } catch (Exception e) {
+            System.err.println("Error al conectar con la API: " + e.getMessage());
+        }
+    }
+    
+    static void enviarASupabaseAPI(String jsonParaEnviar) {
+        
+        String urlDestino = "https://[url]/rest/v1/[tabla]";
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            // 2. Construir la petición POST
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(urlDestino))
+                    .header("Content-Type", "application/json") // Le avisamos que mandamos JSON
+                    .header("apiKey", "[API_KEY]") // Le avisamos que mandamos JSON
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonParaEnviar))
+                    .build();
+
+            // 3. Enviar de forma asíncrona (¡Importante para no bloquear el Serial!)
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                  .thenAccept(response -> {
+                      System.out.println("Nube actualizada. Código: " + response.statusCode());
+                  });
+
+        } catch (Exception e) {
+            System.err.println("Error al conectar con la API: " + e.getMessage());
+        }
+    }
+    
+    
+    public static void guardarEnBD(int t, int h) {
+            // RECUERDA: jdbc:postgresql://[HOST]:[PUERTO]/[DB_NAME]
+            String url = "jdbc:postgresql://[HOST DE SUPABASE]:[PUERTO]/[NOMBRE_DB]";
+            String user = "[USUARIO]";
+            String pass = "[CONTRASEÑA]";
+            
+            try{
+                Class.forName("org.postgresql.Driver");
+
+                try (Connection conn = DriverManager.getConnection(url, user, pass)) {
+                    String query = "INSERT INTO muestras (temp, hum) VALUES (?, ?)";
+                    PreparedStatement pstmt = conn.prepareStatement(query);
+                    pstmt.setDouble(1, t);
+                    pstmt.setDouble(2, h);
+
+                    pstmt.executeUpdate();
+                    System.out.println(">>> [DB] Éxito: T=" + t + " H=" + h);
+                    
+                    conn.close();
+
+                } catch (Exception e) {
+                    System.err.println(">>> [DB] Error: " + e.getMessage());
+                }
+            }catch(Exception e){
+                System.out.println("Error al conectar BD: "+e.getMessage());
+            }
+    }
+}
+
+```
+
+### 2. SACANDO CREDENCIALES
+
+Ahora notarás en el código que nos hace falta la API_KEY y la URL del servidor que se usará para el servicio. Para obtenerlas vamos a SUPABASE en el panel de inicio de nuestro proyecto:
+
+![alt text](assets.img/image.png)
+
+Allí encontraremos un botón que dice copy, si desplegamos vemos la url de nuestro proyecto y la Publishable key seria nuestra API_KEY.
+
+### 3. PRUEBA
+
+Cambiando los valores necesarios podemos probar si esto funciona y ver los datos reflejados en supabase:
+
+![alt text](assets.img/image-1.png)
+
+![alt text](assets.img/image-2.png)

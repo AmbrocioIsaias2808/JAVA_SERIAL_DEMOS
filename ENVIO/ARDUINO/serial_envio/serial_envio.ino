@@ -49,5 +49,5 @@ void loop() {
 
   serializeJson(datos, Serial);
   Serial.print("*");
-  delay(1000);
+  delay(500);
 }
